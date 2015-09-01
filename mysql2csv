@@ -1,0 +1,29 @@
+#!/usr/bin/env node
+
+var mysql = require('mysql'),
+	Promise = require('bluebird'),
+	argv = require('yargs')
+				.usage('mysql2csv -h [host] -u [user] -p [password] -d [database]')
+				.demand(['h', 'u', 'd'])
+				.alias('h', 'host')
+				.alias('u', 'user')
+				.alias('p', 'password')
+				.alias('d', 'database')
+				.argv,
+	connection = mysql.createConnection({host: argv.host, user: argv.user, password: argv.password, database: argv.database});
+	
+Promise.promisifyAll(connection);
+
+connection.queryAsync('show tables').then(function (result) {
+	var actions = [];
+	result[0].forEach(function (x) {
+		var query = 'select * from ' + x[result[1][0].name] + ' into outfile "' + process.cwd() + '/' + x[result[1][0].name] + '.csv"';
+		console.log(query);
+		actions.push(connection.queryAsync(query));
+	});
+	return Promise.all(actions);
+}).then(function () {
+	console.log('Export complete.');
+	process.exit(0);
+});
+
