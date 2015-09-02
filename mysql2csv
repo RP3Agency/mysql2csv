@@ -17,7 +17,9 @@ Promise.promisifyAll(connection);
 connection.queryAsync('show tables').then(function (result) {
 	var actions = [];
 	result[0].forEach(function (x) {
-		var query = 'select * from ' + x[result[1][0].name] + ' into outfile "' + process.cwd() + '/' + x[result[1][0].name] + '.csv"';
+		var query = 'select * from ' + x[result[1][0].name] 
+						+ ' into outfile "' + process.cwd() + '/' + x[result[1][0].name] + '.csv"'
+						+ ' FIELDS TERMINATED BY "," OPTIONALLY ENCLOSED BY \'"\' LINES TERMINATED BY "\n"';
 		console.log(query);
 		actions.push(connection.queryAsync(query));
 	});
